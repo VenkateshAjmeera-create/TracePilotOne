@@ -1,0 +1,37 @@
+{
+  "manifest_version": 3,
+  "name": "TracePilot One",
+  "description": "Enterprise UI workflow recorder and replay with assertions, datasets, and diagnostics.",
+  "version": "1.0.0",
+  "icons": {
+    "16": "designer.png",
+    "32": "designer.png",
+    "48": "designer.png",
+    "128": "designer.png"
+  },
+  "permissions": ["storage", "tabs", "activeTab", "scripting", "windows"],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "src/background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_title": "TracePilot One",
+    "default_popup": "src/popup/popup.html",
+    "default_icon": {
+      "16": "designer.png",
+      "32": "designer.png",
+      "48": "designer.png",
+      "128": "designer.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/contentScript.js"],
+      "all_frames": true,
+      "match_about_blank": true,
+      "run_at": "document_idle"
+    }
+  ]
+}
