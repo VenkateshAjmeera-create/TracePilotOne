@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TracePilot One</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <main class="container">
+      <section class="hero">
+        <div class="hero-copy">
+          <h1>TracePilot One</h1>
+          <p>Precision UI flow recorder and runner</p>
+        </div>
+        <button id="expandBtn" class="ghost" type="button">Expand</button>
+      </section>
+
+      <section class="row controls">
+        <label class="switch-wrap">
+          <input id="recordingToggle" type="checkbox" />
+          <span class="recording-label">Enable recording on all pages</span>
+        </label>
+        <button id="runBtn" class="primary">Run</button>
+      </section>
+
+      <section class="url-row">
+        <label for="runUrlInput" class="url-label">Run URL</label>
+        <input id="runUrlInput" type="text" placeholder="https://example.com/start" />
+        <button id="captureUrlBtn" class="ghost" type="button">Capture</button>
+      </section>
+
+      <section class="llm-panel">
+        <div class="feature-chip">AI assistant features are in progress</div>
+        <!--
+        <div class="llm-row">
+          <label for="azureApiKeyInput" class="url-label">Azure API key</label>
+          <input id="azureApiKeyInput" type="password" placeholder="Paste Azure OpenAI API key" />
+          <button id="saveApiKeyBtn" class="ghost" type="button">Save</button>
+        </div>
+        -->
+        <div class="llm-row">
+          <label for="agentGoalInput" class="url-label">Goal</label>
+          <input id="agentGoalInput" type="text" placeholder="Example: Login and open profile page" />
+          <button id="runAgentBtn" class="primary" type="button">Run Agent</button>
+        </div>
+        <div class="llm-row-actions">
+          <button id="uploadPdfBtn" class="ghost" type="button">Upload PDF</button>
+          <!-- <button id="testConnectionBtn" class="ghost" type="button">Test connection</button> -->
+          <label class="switch-wrap">
+            <input id="useBackendToggle" type="checkbox" />
+            <span>Use secure backend</span>
+          </label>
+          <input id="backendUrlInput" type="text" placeholder="http://localhost:4000" />
+          <button id="saveBackendBtn" class="ghost" type="button">Save Backend</button>
+          <label class="switch-wrap">
+            <input id="llmAutoContinueToggle" type="checkbox" />
+            <span>LLM continue mandatory fields</span>
+          </label>
+          <input id="pdfFileInput" type="file" accept="application/pdf" hidden />
+        </div>
+        <div class="attachments-panel">
+          <span class="attachments-title">Attachments</span>
+          <div id="attachmentsList" class="attachments-list"></div>
+        </div>
+      </section>
+
+      <section class="row controls">
+        <div class="row-actions">
+          <button id="addStepBtn" class="ghost" type="button">Add step</button>
+          <button id="pasteStepBtn" class="ghost" type="button">Paste step</button>
+          <button id="saveBtn" class="ghost">Save test data</button>
+          <button id="exportBtn" class="ghost" type="button">Export</button>
+          <button id="importBtn" class="ghost" type="button">Import</button>
+          <button id="clearBtn" class="ghost">Clear</button>
+          <input id="importFileInput" type="file" accept="application/json" hidden />
+        </div>
+        <span id="status" class="status"></span>
+      </section>
+
+      
+
+      <section>
+        <div class="step-filters">
+          <input id="filterLabelInput" type="text" placeholder="Filter by label" />
+          <input id="filterClassInput" type="text" placeholder="Filter by class name" />
+          <input id="filterPageObjectInput" type="text" placeholder="Filter by page object" />
+          <button id="clearStepFiltersBtn" class="ghost" type="button">Clear Filters</button>
+        </div>
+        <div class="header-grid">
+          <span>Move</span>
+          <span>Webelement</span>
+          <span>Locator</span>
+          <span>Type</span>
+          <span>Test data / Assert</span>
+          <span>Wait (ms)</span>
+          <span>Add</span>
+          <span>Copy</span>
+          <span>Delete</span>
+          <span>Open</span>
+        </div>
+        <div id="stepsList" class="steps"></div>
+      </section>
+    </main>
+
+    <template id="stepTemplate">
+      <div class="step-item" draggable="true">
+        <div class="step-grid">
+          <button class="dragHandle" title="Drag to reorder" type="button">↕</button>
+          <input class="elementName" type="text" />
+          <div class="locatorCell">
+            <select class="locatorSelect"></select>
+            <span class="locatorRisk" hidden>fragile</span>
+            <button class="deleteLocator" title="Delete custom locator" type="button">×</button>
+          </div>
+          <select class="actionType">
+            <option value="Text">Text</option>
+            <option value="Click">Click</option>
+            <option value="Dropdown">Dropdown</option>
+            <option value="Radio">Radio</option>
+            <option value="Checkbox">Checkbox</option>
+            <option value="UploadFile">Upload File</option>
+            <option value="ClickLogout">Click Logout</option>
+            <option value="Wait">Wait</option>
+            <option value="Assert">Assert</option>
+          </select>
+          <div class="testDataCell">
+            <span class="datasetTag">Dataset 1</span>
+            <input class="testData" type="text" />
+            <div class="assertionEditor" hidden>
+              <select class="assertionType">
+                <option value="exists">exists</option>
+                <option value="visible">visible</option>
+                <option value="textEquals">textEquals</option>
+                <option value="textContains">textContains</option>
+                <option value="valueEquals">valueEquals</option>
+                <option value="attributeEquals">attributeEquals</option>
+                <option value="urlContains">urlContains</option>
+                <option value="titleContains">titleContains</option>
+              </select>
+              <input class="assertionExpected" type="text" placeholder="Expected value" />
+              <input class="assertionAttribute" type="text" placeholder="Attribute (for attributeEquals)" />
+              <div class="assertionRow">
+                <input class="assertionTimeoutMs" type="number" min="250" step="250" placeholder="Timeout ms" />
+                <select class="assertionOnFail">
+                  <option value="stop">on fail: stop</option>
+                  <option value="continue">on fail: continue</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <input class="waitAfterMs" type="number" min="0" step="100" placeholder="auto" />
+          <button class="addVariant" title="Add test data variant" type="button">+</button>
+          <button class="copyStep" title="Clone and copy step" type="button">⧉</button>
+          <button class="deleteStep" title="Delete web element" type="button">×</button>
+          <button class="stepSettings" title="Open step settings" type="button">⚙</button>
+        </div>
+        <div class="stepMetadata" hidden>
+          <div class="stepMetadataGrid">
+            <label>
+              Class Name
+              <input class="classNameInput" type="text" placeholder="Example: LoginPage.clickLoginButton" readonly />
+            </label>
+            <label>
+              Page Object Name
+              <input class="pageObjectNameInput" type="text" placeholder="Example: LoginPage" />
+            </label>
+            <label>
+              Step Definition
+              <input class="stepDefInput" type="text" placeholder="Example: clickLoginButton" />
+            </label>
+            <label>
+              Gherkin Type
+              <select class="gherkinTypeSelect">
+                <option value="Given">Given</option>
+                <option value="When">When</option>
+                <option value="Then">Then</option>
+                <option value="And">And</option>
+                <option value="But">But</option>
+              </select>
+            </label>
+            <label>
+              Wait (ms)
+              <input class="waitAfterMsMeta" type="number" min="0" step="100" placeholder="auto" />
+            </label>
+            <label>
+              Wait Condition
+              <select class="waitConditionSelect">
+                <option value="afterDelay">After delay</option>
+                <option value="untilElementVisible">Wait until element displayed</option>
+              </select>
+            </label>
+            <label class="gherkinPreviewLabel">
+              BDD Preview
+              <span class="gherkinPreview">When user clicks "this element"</span>
+            </label>
+          </div>
+        </div>
+        <div class="variants"></div>
+      </div>
+    </template>
+    <section class="run-console-panel">
+        <div class="run-console-header">Run console</div>
+        <pre id="runConsole" class="run-console">No run logs yet.</pre>
+      </section>
+
+      <section class="credits-panel">
+        <span>Built by Venkatesh Ajmeera</span>
+      </section>
+
+    <script src="popup.js" type="module"></script>
+  </body>
+</html>
